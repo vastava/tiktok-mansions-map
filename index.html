@@ -101,12 +101,35 @@
 /*          text-anchor: start;
 *//*          transform: translate(-10px);
 */}
+
+    #clear {
+        display: block;
+        position: relative;
+        margin: 5px;
+        width: 10%;
+        height: 40px;
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        font-size: 12px;
+        text-align: center;
+        color: #fff;
+        background: #EF1D52;
+        font-weight: bold;
+    }
+
+.mapboxgl-popup {
+    max-width: 500px;
+
+}
+
 </style>
 <script
 src="https://api.tiles.mapbox.com/mapbox.js/plugins/turf/v2.0.0/turf.min.js"
 charset="utf-8"
 ></script>
 <div id="map"></div>
+<button id="clear">Clear Selection</button>
 
 <!-- <div class="map-overlay top">
     <div class="map-overlay-inner">
@@ -199,42 +222,81 @@ charset="utf-8"
 
         })
 
-        function image(row, dest) {
+        function image(row, dest, word) {
             console.log(row);
             map.loadImage(
-                row.Image,
+                'img/' + row.ImageUrl,
                 function (error, image) {
-                console.log(image);
                 if (error) throw error;
-                    map.addImage('image' + row.Key, image);
-                    map.addSource('point'+row.Key, {
-                    'type': 'geojson',
-                    'data': {
-                    'type': 'FeatureCollection',
-                    'features': [
-                        {
-                        'type': 'Feature',
-                        'geometry': {
-                            'type': 'Point',
-                            'coordinates': dest
+                    if (!map.getSource('point' + row.Key)) {
+                                map.addImage('image' + row.Key, image);
+                                map.addSource('point'+row.Key, {
+                                'type': 'geojson',
+                                'data': {
+                                'type': 'FeatureCollection',
+                                'features': [
+                                    {
+                                    'type': 'Feature',
+                                    'properties': {
+                                        'name': row.Name,
+                                        'city': row.City,
+                                        'state': row.State
+                                    },
+                                    'geometry': {
+                                        'type': 'Point',
+                                        'coordinates': dest
+                                        }
+                                    }
+                                ]
                             }
-                        }
-                    ]
+                        });
+                    }
+            if (!map.getLayer(word+row.Key)) {
+                map.addLayer({
+                'id': word+row.Key,
+                'type': 'symbol',
+                'source': 'point'+row.Key,
+                'layout': {
+                'icon-image': 'image'+row.Key,
+                'icon-size': 0.25
                 }
+                });
+            }
+            if (map.getLayer(word+row.Key+'Layers')) {
+                map.moveLayer(word+row.Key+'Layers',word+row.Key)
+            }
+            map.on('mouseenter', word+row.Key, function(e) {
+            // Change the cursor style as a UI indicator.
+                map.getCanvas().style.cursor = 'pointer';
+                console.log(e)
+                var city = e.features[0].properties.city
+                var state = e.features[0].properties.state
+                var coordinates = e.features[0].geometry.coordinates.slice();
+                var name = e.features[0].properties.name;
+                var description = '<strong>' + name + '</strong>' + '<br>' + city + ', ' + state;
+                // Ensure that if the map is zoomed out such that multiple
+                // copies of the feature are visible, the popup appears
+                // over the copy being pointed to.
+                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+            }
+             
+            // Populate the popup and set its coordinates
+            // based on the feature found.
+            popup
+                .setLngLat(coordinates)
+                .setHTML(description)
+                .addTo(map);
             });
-            // map.addLayer({
-            // 'id': 'points',
-            // 'type': 'symbol',
-            // 'source': 'point'+row.Key,
-            // 'layout': {
-            // 'icon-image': 'image'+row.Key,
-            // 'icon-size': 0.25
-            // }
-            // });
+             
+            map.on('mouseleave', word+row.Key, function() {
+                map.getCanvas().style.cursor = '';
+                popup.remove();
+            });
         })
     }
 
-    function parseCoords(row, origin) {
+    function parseCoords(row, origin, word) {
         console.log("I'm here!")
         console.log('route'+row.Key);
         console.log(map.getStyle().sources)
@@ -258,41 +320,58 @@ charset="utf-8"
         if (steps <= 1700) {
             steps = row.Key*100;
         }
+        if (row.Key == 89) {
+        	console.log(row.Name);
+        	steps = 0;
+        }
         for (var i = 0; i < lineDistance; i += lineDistance / steps) {
             var segment = turf.along(route.features[0], i, 'kilometers');
             arc.push(segment.geometry.coordinates);
         }
-        // Update the route with calculated arc coordinates
-        route.features[0].geometry.coordinates = arc;
+       // Update the route with calculated arc coordinates
+        if (row.Key != 89) {
+        	route.features[0].geometry.coordinates = arc;
+        }
+        // route.features[0].geometry.coordinates = arc;
         console.log(route);
         console.log(destination);
         // console.log(origin);
-        map.addSource('route' + row.Key, {
-        'type': 'geojson',
-        'data': route
+        if (!map.getSource('route' + row.Key)) {
+            map.addSource('route' + row.Key, {
+                'type': 'geojson',
+                'data': route
         });
-        console.log(map.getSource('route'+row.Key));
-        map.addLayer({
-        'id': 'route'+row.Key+'Layers',
-        'type': 'line',
-        'source': 'route'+row.Key,
-        'layout': {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        'paint': {
-        'line-width': 10,
-        'line-color': '#007cbf'
-        },
-        'paint': {
-                    'line-color': 'red',
-                    'line-dasharray': [2, 3]
-                // 'fill-color': 'red',
-                // 'fill-opacity': 0.8
-                }
-        });
+        }
+        //console.log(map.getSource('route'+row.Key));
+        if (!map.getLayer(word+row.Key+'Layers')) {
+            map.addLayer({
+            'id': word+row.Key+'Layers',
+            'type': 'line',
+            'source': 'route'+row.Key,
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            'paint': {
+            'line-width': 10,
+            'line-color': '#007cbf'
+            },
+            'paint': {
+                        'line-color': 'red',
+                        'line-dasharray': [2, 3]
+                    // 'fill-color': 'red',
+                    // 'fill-opacity': 0.8
+                    }
+            });
+            if (map.getLayer('points'+row.Key)) {
+                console.log('yowtfff');
+                map.moveLayer(word+row.Key+'Layers', 'points'+row.Key)
+            }
+        }
+       
+        console.log(map.getStyle().layers);
         // return route;
-        image(row, destination);
+        image(row, destination, word);
     }
 
     map.on('click', 'mansionsLayer', function(e) {
@@ -305,11 +384,13 @@ charset="utf-8"
         // var state = e.features[0].properties["State"]
         // console.log(county)
         var coordinates = e.features[0].geometry["coordinates"]
-        var description = '<strong>' + mansion + '</strong>' + '<br>' + city  + ' • ' + date + '<br>' + e.features[0].properties["Description"] ;
-        d3.csv('tiktok_members.csv', function(data) {
+        var description = '<strong>' + mansion + '</strong>' + '<br>' + city  + ' • Launched ' + date + '<br>' + e.features[0].properties["Description"] ;
+        d3.csv('members_geocoded.csv', function(data) {
             filtered = data.filter(function(d) { return d.House == mansion});
             // filtered.forEach(parseCoords(d, coordinates));
-            filtered.forEach(function(d) {parseCoords(d, coordinates)});
+            filtered.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+            console.log(filtered)
+            console.log(data)
 
         });
         // Ensure that if the map is zoomed out such that multiple
@@ -327,6 +408,63 @@ charset="utf-8"
         .addTo(map);
     });
 
+    var popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false
+    });
+
+    // map.on('mouseenter', 'mansionsLayer', function(e) {
+    // // Change the cursor style as a UI indicator.
+    //     map.getCanvas().style.cursor = 'pointer';
+    //     console.log(e)
+    //     var mansion = e.features[0].properties["Mansion"]
+    //     var city = e.features[0].properties["City"] + ', ' + e.features[0].properties["State"]
+    //     var date = e.features[0].properties["Date"]
+    //     var coordinates = e.features[0].geometry["coordinates"]
+    //     var description = '<strong>' + mansion + '</strong>' + '<br>' + city  + ' • Launched ' + date + '<br>' + e.features[0].properties["Description"] ;
+    //     d3.csv('meembers_semigeocoded.csv', function(data) {
+    //         filtered = data.filter(function(d) { return d.House == mansion});
+    //         console.log(filtered);
+    //         // filtered.forEach(parseCoords(d, coordinates));
+    //         filtered.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+
+    //     });
+
+    //     while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+    //         coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+    //     }
+     
+    // // // Populate the popup and set its coordinates
+    // // // based on the feature found.
+    // popup
+    //     .setLngLat(coordinates)
+    //     .setHTML(description)
+    //     .addTo(map);
+    // });
+    // map.on('mouseleave', 'mansionsLayer', function(e) {
+    //     removeRoutes();
+    //     popup.remove();
+    // })
+
+
+    function removeRoutes() {
+        console.log("i;m here");
+    	var layers = map.getStyle().layers;
+    	var layerIds = layers.map(function (layer) {
+    	    return layer.id;
+    	})
+        for (var i = 0; i < layerIds.length; i += 1) {
+            if (layerIds[i].includes("route")) {
+                map.removeLayer(layerIds[i]);
+            }
+        }
+
+    }
+
+    document.getElementById('clear').addEventListener('click', function () {
+        removeRoutes();
+        popup.remove();
+    });    
 
 
 map.getCanvas().style.cursor = 'pointer';
