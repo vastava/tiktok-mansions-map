@@ -430,6 +430,37 @@ charset="utf-8"
     //     removeRoutes();
     //     popup.remove();
     // })
+    map.on('mouseenter', 'mansionsLayer', function(e) {
+    // Change the cursor style as a UI indicator.
+        map.getCanvas().style.cursor = 'pointer';
+        console.log(e)
+        var mansion = e.features[0].properties["Mansion"]
+        var city = e.features[0].properties["City"] + ', ' + e.features[0].properties["State"]
+        var date = e.features[0].properties["Date"]
+        var coordinates = e.features[0].geometry["coordinates"]
+        var description = '<strong>' + mansion + '</strong>' + '<br>' + city  + ' • Launched ' + date + '<br>' + e.features[0].properties["Description"] ;
+        // d3.csv('meembers_semigeocoded.csv', function(data) {
+        //     filtered = data.filter(function(d) { return d.House == mansion});
+        //     console.log(filtered);
+        //     // filtered.forEach(parseCoords(d, coordinates));
+        //     filtered.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+
+        // });
+
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
+     
+    // // Populate the popup and set its coordinates
+    // // based on the feature found.
+    popup
+        .setLngLat(coordinates)
+        .setHTML(description)
+        .addTo(map);
+    });
+    map.on('mouseleave', 'mansionsLayer', function(e) {
+        popup.remove();
+    })    
 
 
     function removeRoutes() {

@@ -70,7 +70,8 @@
     padding-top: 10vh;
     padding-bottom: 10vh;
     /*z-index: 300;*/
-    width: 33vw;
+    /*width: 3vw;*/
+    width: 0;
     margin-left: 62vw;
 
 }
@@ -81,12 +82,14 @@
     border-radius: 10px;	
     border-style: solid;
     border-color: #EF1D52;
+    width: 25vw;
 }
 
 .centery {
     /*margin: 0 auto;*/
-    margin-left: -100%;
-    width: 20vw;    
+    /*margin-left: -100px;*/
+    margin-left: -35vw;
+    width: 25vw;    
 }
 
         .step {
@@ -99,7 +102,8 @@
         }
 
         .step div {
-            padding:  25px 50px;
+            /*padding:  25px 50px;*/
+            padding: 10px 10px;
             line-height: 25px;
             font-size: 13px;
         }
@@ -108,12 +112,15 @@ h1, h2, h3 {
     font-family: Cormorant SC,serif;
     /*font-family: Helvetica;*/
     line-height: .8;
+    opacity: 1;
 }
 
 p {
     font-size: 18px;
     line-height: 1.334;
     font-family: PT Sans,sans-serif;
+    text-align: left;
+    opacity: 1;
 /*    -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #111;*/
@@ -123,7 +130,18 @@ p {
     margin: auto;
     text-align: center;
     width: 60%;
-    transform: translate(0, 80%);
+    background-color: #fafafa;
+    border-radius: 10px;    
+    border-style: solid;
+    color: #444;
+    border-color: #EF1D52;
+    padding: 15px 15px;
+    opacity: 0.90;
+    transform: translate(0, 5vh);
+}
+
+.img img {
+    width: 25vw;
 }
 /*.overview {
     text-align: center;
@@ -137,10 +155,15 @@ p {
 <!-- check where step should go -->
 <div id = "collage" class="collage">
 <div id="overview step" style="height: 5px;">
-  <div id = "titlecard" class="bg">
-    <h1 style="font-size:50px">Mapping Tik Tok Mansions</h1>
+  <div id = "titlecard">
+    <h1 style="font-size:50px">Mapping TikTok Mansions</h1>
     <h3>Amid pandemic, hundreds of teens move cross-country to form "content houses"</h3>
-    <p>Scroll to begin.</p>
+    <p>TikTok content houses are taking over our social media feeds, and the streets of Los Angeles. A "content house" is a well-established strategy in the influencer world to build an engaged audience — essentially, several popular creators will move into a (typically very lavish) mansion to create content with one another. And the strategy must work, because this past summer, more than 20 such houses were established.</p>
+ 
+   <p> Since March, some influencers have drawn the ire of many for attending large gatherings and traveling in the face of a worldwide pandemic. Some have also criticized the creation of these content houses, especially when members move across states or even across countries to join.</p>
+
+   <p>This website maps each of the content houses that have formed since mid-March, when California was put into a state-wide lockdown. As regulations and stay-at-home orders became stricter over the summer, those already living in content mansions had to decide whether or not to continue living in big groups, despite increased risks to their health. But what about the people who decided to move into such a mansion <i>during</i> quarantine? Why, and <i>how</i>, did they make that decision?</p>
+    <p style="text-align: center"><b>Scroll to begin.</b></p>
   </div>
 </div>
 </div>
@@ -176,7 +199,7 @@ charset="utf-8"
         zoom: 8.5,
         scrollZoom: false
     });
-
+    map.addControl(new mapboxgl.NavigationControl());
 	var story = document.getElementById('story');
     var features = document.getElementById('features');
 	// var features = document.createElement('div');
@@ -193,11 +216,13 @@ charset="utf-8"
 	        chapter.appendChild(title);
 	    }
 	    
-	    // if (record.image) {
-	    //     var image = new Image();  
-	    //     image.src = record.image;  
-	    //     chapter.appendChild(image);
-	    // }
+	    if (record.image) {
+            console.log("yo");
+	        var image = new Image();  
+	        image.src = record.image;  
+	        chapter.appendChild(image);
+            chapter.classList.add("img");
+	    }
 	    
 	    if (record.description) {
 	        var story = document.createElement('p');
@@ -211,7 +236,6 @@ charset="utf-8"
 	        container.classList.add('active');
 	    }
 
-        console.log(record);
 	    chapter.classList.add("bg");
         chapter.classList.add(record.align);
 	    container.appendChild(chapter);
@@ -257,10 +281,88 @@ charset="utf-8"
 	            progress: true
 	        })
 	        .onStepEnter(response => {
+                if (response.index == 0) {
+                    collage.style.backgroundImage = "url('collab_collage.png')";
+                    collage.style.zIndex = 200;
+                    titlecard.style.display = "block";
+
+                }
                 if (response.index > 0) {
                     var chapter = config.chapters.find(chap => chap.id === response.element.id);
                     response.element.classList.add('active');
                     map.flyTo(chapter.location);
+                }
+                if (response.index == 2) {
+                    d3.csv('members_geo_final_v2.csv', function(data) {
+                        filtered = data.filter(function(d) { return d.House == "Alpha House"});
+                        var coordinates = [-118.58470916748047, 34.17161849435432];
+                        // filtered.forEach(parseCoords(d, coordinates));
+                        filtered.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+                    })
+                }
+                if (response.index == 5) {
+                    d3.csv('members_geo_final_v2.csv', function(data) {
+                        removeRoutes();
+                        filtered = data.filter(function(d) { return d.House == "V@ult House"});
+                        var coordinates = [-118.38163375854492, 34.09389476570907];
+                        // filtered.forEach(parseCoords(d, coordinates));
+                        filtered.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+                    })
+                }
+                if (response.index == 10) {
+                    d3.csv('members_geo_final_v2.csv', function(data) {
+                        removeRoutes();
+                        filtered = data.filter(function(d) { return d.House == "Not a Content House"});
+                        var coordinates = [-118.4935209, 34.1029071];
+                        // filtered.forEach(parseCoords(d, coordinates));
+                        filtered.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+                    })
+                }
+                if (response.index == 11) {
+                    d3.csv('members_geo_final_v2.csv', function(data) {
+                        clubhouse = data.filter(function(d) { return d.House == "Clubhouse BH"});
+                        clubhouse_ftb = data.filter(function(d) { return d.House == "Clubhouse For The Boys"});
+                        clubhouse_next =  data.filter(function(d) { return d.House == "Clubhouse Next"});
+                        var coordinates = [-118.4173873, 34.0233072 ];
+                        // filtered.forEach(parseCoords(d, coordinates));
+                        clubhouse.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+                        var coordinates2 = [-118.38446, 34.1232776 ];
+                        var coordinates3 = [-118.298662, 33.786594  ];
+                        // clubhouse_ftb.forEach(function(d) {parseCoords(d, coordinates2, 'route')});
+                        // clubhouse_next.forEach(function(d) {parseCoords(d, coordinates3, 'route')});
+                    })
+                }
+                if (response.index == 12) {
+                    d3.csv('members_geo_final_v2.csv', function(data) {
+                        clubhouse = data.filter(function(d) { return d.House == "Clubhouse BH"});
+                        clubhouse_ftb = data.filter(function(d) { return d.House == "Clubhouse For The Boys"});
+                        clubhouse_next =  data.filter(function(d) { return d.House == "Clubhouse Next"});
+                        var coordinates = [-118.4173873, 34.0233072 ];
+                        // filtered.forEach(parseCoords(d, coordinates));
+                        // clubhouse.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+                        var coordinates2 = [-118.38446, 34.1232776 ];
+                        var coordinates3 = [-118.298662, 33.786594  ];
+                        clubhouse_ftb.forEach(function(d) {parseCoords(d, coordinates2, 'route')});
+                        clubhouse_next.forEach(function(d) {parseCoords(d, coordinates3, 'route')});
+                    })
+                }
+
+                if (response.index == 15) {
+                    d3.csv('members_geo_final_v2.csv', function(data) {
+                        removeRoutes();
+                        halo = data.filter(function(d) { return d.House == "Halo House"});
+                        nobody = data.filter(function(d) { return d.House == "The House Nobody Asked For"});
+                        var coordinates = [-112.1386447, 33.6744664  ];
+                        // filtered.forEach(parseCoords(d, coordinates));
+                        // clubhouse.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+                        var coordinates2 = [-115.10647, 36.17372 ];
+                        halo.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+                        nobody.forEach(function(d) {parseCoords(d, coordinates2, 'route')});
+                    })
+                }
+
+                if (response.index == 16) {
+                    removeRoutes();
                 }
 	            	            // if (config.showMarkers) {
 	            //     marker.setLngLat(chapter.location.center);
@@ -273,14 +375,14 @@ charset="utf-8"
                 var collage = document.getElementById('collage');
                 var titlecard = document.getElementById('titlecard');
                 if (response.index == 0) {
-                    titlecard.remove();
+                    // titlecard.remove();
+                    titlecard.style.display = "none";
                     collage.style.backgroundImage = "none";
                     collage.style.zIndex = -100;
                 }
                 if (response.index > 0) {
                     var chapter = config.chapters.find(chap => chap.id === response.element.id);
                 }
-	            
 	            response.element.classList.remove('active');
 	            // if (chapter.onChapterExit.length > 0) {
 	            //     chapter.onChapterExit.forEach(setLayerOpacity);
@@ -289,7 +391,6 @@ charset="utf-8"
         })
 
         function image(row, dest, word) {
-            console.log(row);
             map.loadImage(
                 'img/' + row.ImageUrl,
                 function (error, image) {
@@ -325,7 +426,8 @@ charset="utf-8"
                 'source': 'point'+row.Key,
                 'layout': {
                 'icon-image': 'image'+row.Key,
-                'icon-size': 0.25
+                'icon-size': 0.25,
+                'icon-allow-overlap': true
                 }
                 });
             }
@@ -340,14 +442,20 @@ charset="utf-8"
             }              
             map.on('mouseenter', word+row.Key, function(e) {
             // Change the cursor style as a UI indicator.
-                map.getCanvas().style.cursor = 'pointer';
-                console.log(e.features[0]);
+                map.getCanvas().style.cursor = 'pointer';      
                 var city = e.features[0].properties.city
                 var state = e.features[0].properties.state
                 var coordinates = e.features[0].geometry.coordinates.slice();
                 var name = e.features[0].properties.name;
                 var mans = e.features[0].properties.mansion;
-                var description = '<strong>' + name + '</strong>' + '<br>' + city + ', ' + state + ' → ' + mans ;
+                var loc = "";
+                if (city) {
+                    loc = city + ", " + state;
+                }                
+                else {
+                    loc = state;
+                }
+                var description = '<strong>' + name + '</strong>' + '<br>' + loc + ' → ' + mans ;
                 // Ensure that if the map is zoomed out such that multiple
                 // copies of the feature are visible, the popup appears
                 // over the copy being pointed to.
@@ -371,10 +479,6 @@ charset="utf-8"
     }
 
     function parseCoords(row, origin, word) {
-        console.log("I'm here!")
-        console.log('route'+row.Key);
-        console.log(map.getStyle().sources)
-        console.log(origin);
         destination = [+row.Longitude, +row.Latitude];
         var route = {
             'type': 'FeatureCollection',
@@ -395,7 +499,6 @@ charset="utf-8"
             steps = row.Key*100;
         }
         if (row.Key == 89) {
-        	console.log(row.Name);
         	steps = 0;
         }
         for (var i = 0; i < lineDistance; i += lineDistance / steps) {
@@ -407,8 +510,7 @@ charset="utf-8"
         	route.features[0].geometry.coordinates = arc;
         }
         // route.features[0].geometry.coordinates = arc;
-        console.log(route);
-        console.log(destination);
+
         // console.log(origin);
         if (!map.getSource('route' + row.Key)) {
             map.addSource('route' + row.Key, {
@@ -438,12 +540,10 @@ charset="utf-8"
                     }
             });
             if (map.getLayer('points'+row.Key)) {
-                console.log('yowtfff');
                 map.moveLayer(word+row.Key+'Layers', 'points'+row.Key)
             }
         }
        
-        console.log(map.getStyle().layers);
         // return route;
         image(row, destination, word);
     }
@@ -451,17 +551,16 @@ charset="utf-8"
     map.on('click', 'mansionsLayer', function(e) {
     // Change the cursor style as a UI indicator.
         map.getCanvas().style.cursor = 'pointer';
-        console.log(e)
         var mansion = e.features[0].properties["Mansion"]
         var city = e.features[0].properties["City"] + ', ' + e.features[0].properties["State"]
         var date = e.features[0].properties["Date"]
         // var state = e.features[0].properties["State"]
         // console.log(county)
         var coordinates = e.features[0].geometry["coordinates"]
+        console.log(coordinates)
         var description = '<strong>' + mansion + '</strong>' + '<br>' + city  + ' • Launched ' + date + '<br>' + e.features[0].properties["Description"] ;
-        d3.csv('members_geo_final.csv', function(data) {
+        d3.csv('members_geo_final_v2.csv', function(data) {
             filtered = data.filter(function(d) { return d.House == mansion});
-            console.log(filtered);
             // filtered.forEach(parseCoords(d, coordinates));
             filtered.forEach(function(d) {parseCoords(d, coordinates, 'route')});
         });
@@ -485,42 +584,40 @@ charset="utf-8"
     closeOnClick: false
     });
 
-    // map.on('mouseenter', 'mansionsLayer', function(e) {
-    // // Change the cursor style as a UI indicator.
-    //     map.getCanvas().style.cursor = 'pointer';
-    //     console.log(e)
-    //     var mansion = e.features[0].properties["Mansion"]
-    //     var city = e.features[0].properties["City"] + ', ' + e.features[0].properties["State"]
-    //     var date = e.features[0].properties["Date"]
-    //     var coordinates = e.features[0].geometry["coordinates"]
-    //     var description = '<strong>' + mansion + '</strong>' + '<br>' + city  + ' • Launched ' + date + '<br>' + e.features[0].properties["Description"] ;
-    //     d3.csv('meembers_semigeocoded.csv', function(data) {
-    //         filtered = data.filter(function(d) { return d.House == mansion});
-    //         console.log(filtered);
-    //         // filtered.forEach(parseCoords(d, coordinates));
-    //         filtered.forEach(function(d) {parseCoords(d, coordinates, 'route')});
+    map.on('mouseenter', 'mansionsLayer', function(e) {
+    // Change the cursor style as a UI indicator.
+        map.getCanvas().style.cursor = 'pointer';
+        console.log(e)
+        var mansion = e.features[0].properties["Mansion"]
+        var city = e.features[0].properties["City"] + ', ' + e.features[0].properties["State"]
+        var date = e.features[0].properties["Date"]
+        var coordinates = e.features[0].geometry["coordinates"]
+        var description = '<strong>' + mansion + '</strong>' + '<br>' + city  + ' • Launched ' + date + '<br>' + e.features[0].properties["Description"] ;
+        // d3.csv('meembers_semigeocoded.csv', function(data) {
+        //     filtered = data.filter(function(d) { return d.House == mansion});
+        //     console.log(filtered);
+        //     // filtered.forEach(parseCoords(d, coordinates));
+        //     filtered.forEach(function(d) {parseCoords(d, coordinates, 'route')});
 
-    //     });
+        // });
 
-    //     while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-    //         coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-    //     }
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
      
-    // // // Populate the popup and set its coordinates
-    // // // based on the feature found.
-    // popup
-    //     .setLngLat(coordinates)
-    //     .setHTML(description)
-    //     .addTo(map);
-    // });
-    // map.on('mouseleave', 'mansionsLayer', function(e) {
-    //     removeRoutes();
-    //     popup.remove();
-    // })
+    // // Populate the popup and set its coordinates
+    // // based on the feature found.
+    popup
+        .setLngLat(coordinates)
+        .setHTML(description)
+        .addTo(map);
+    });
+    map.on('mouseleave', 'mansionsLayer', function(e) {
+        popup.remove();
+    })
 
 
     function removeRoutes() {
-        console.log("i;m here");
     	var layers = map.getStyle().layers;
     	var layerIds = layers.map(function (layer) {
     	    return layer.id;
