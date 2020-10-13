@@ -9,7 +9,8 @@ var config = {
 				zoom: 8.5,
 				pitch: 0,
 				bearing: 0
-			}
+			},
+			align: "noDisplay"
 		},	
 		{
 			// 7 9 9 6 10 2 4 5 7 11 12 4
