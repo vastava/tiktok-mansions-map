@@ -92,7 +92,7 @@ var config = {
 				pitch: 0,
 				bearing: 0
 			},
-			image: "o2l.jpg",
+			image: "img/o2l.jpg",
 			align: "centery"
 		},
 		{
@@ -105,7 +105,7 @@ var config = {
 				pitch: 0,
 				bearing: 0
 			},
-			image: "fenty.jpeg",
+			image: "img/fenty.jpeg",
 			align: "centery"
 		},	
 		{
